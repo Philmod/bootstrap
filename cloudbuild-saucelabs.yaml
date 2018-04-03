@@ -1,0 +1,75 @@
+steps:
+- id: 'Pull images'
+  name: gcr.io/cloud-builders/docker
+  entrypoint: 'sh'
+  args:
+      - '-c'
+      - |
+        docker pull gcr.io/$PROJECT_ID/chromium-xvfb-js:${_NODE}
+        docker pull gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+        docker pull ruby
+        docker pull jekyll/jekyll
+
+# Fetch cache
+- id: 'Fetch cache'
+  name: gcr.io/cloud-builders/gsutil
+  entrypoint: 'sh'
+  args:
+      - '-c'
+      - |
+        gsutil cp gs://${_BUCKET}/node_modules-${_NODE}.tar.gz previous_node_modules.tar.gz
+        tar -xzf previous_node_modules.tar.gz node_modules
+        gsutil cp gs://${_BUCKET}/bundle.tar.gz previous_bundle.tar.gz
+        tar -xzf previous_bundle.tar.gz vendor/bundle
+
+# Install bundle
+- id: 'Install vendor/bundle'
+  name: ruby
+  args: ['bundle', 'install', '--deployment']
+
+# Install node_modules
+- id: 'Install node_modules'
+  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  args: ['install']
+
+# Run Tests
+  # todo: add this to package.json
+- id: 'Install grunt'
+  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  args: ['install', 'grunt', 'grunt-saucelabs-qunit', 'grunt-contrib-connect']
+
+- id: 'Run Grunt SauceLabs Tests'
+  name: digitallyseamless/nodejs-bower-grunt
+  args: ['grunt']
+
+- id: 'docs-compile'
+  name: jekyll/jekyll
+  dir: './dist'
+  args: ['bundle', 'exec', 'jekyll', 'build']
+
+- id: 'docs-lint'
+  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  dir: './dist'
+  args: ['run', 'docs-lint']
+
+- id: 'bundlesize'
+  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  dir: './dist'
+  args: ['run', 'bundlesize']
+
+# Cache dependencies
+- id: 'Push cache'
+  name: gcr.io/cloud-builders/gsutil
+  entrypoint: 'sh'
+  args:
+      - '-c'
+      - |
+        tar -czf node_modules.tar.gz node_modules
+        gsutil cp node_modules.tar.gz gs://${_BUCKET}/node_modules-${_NODE}.tar.gz
+        tar -czf bundle.tar.gz vendor/bundle
+        gsutil cp bundle.tar.gz gs://${_BUCKET}/bundle.tar.gz
+
+substitutions:
+  _NODE: '8' # default value
+  _NPM_NODE: '8.11.0' # default value
+  _BUCKET: 'bootstrap-cache'

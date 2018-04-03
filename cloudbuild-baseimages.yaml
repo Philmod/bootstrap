@@ -1,0 +1,12 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-f', 'Dockerfile-8.x', '--tag', 'gcr.io/$PROJECT_ID/chromium-xvfb-js:8', '.']
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-f', 'Dockerfile-9.x', '--tag', 'gcr.io/$PROJECT_ID/chromium-xvfb-js:9', '.']
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-f', 'Dockerfile-6.x', '--tag', 'gcr.io/$PROJECT_ID/chromium-xvfb-js:6', '.']
+
+images: 
+  - gcr.io/$PROJECT_ID/chromium-xvfb-js:8
+  - gcr.io/$PROJECT_ID/chromium-xvfb-js:9
+  - gcr.io/$PROJECT_ID/chromium-xvfb-js:6

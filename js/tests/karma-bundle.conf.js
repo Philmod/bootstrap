@@ -6,48 +6,55 @@ module.exports = (config) => {
 
   config.set({
     basePath: '../..',
-    frameworks: ['qunit', 'sinon', 'detectBrowsers'],
+    frameworks: ['qunit', 'sinon'],
+    browsers: ['ChromeHeadless'],
     plugins: [
       'karma-chrome-launcher',
-      'karma-firefox-launcher',
+      // 'karma-firefox-launcher',
       'karma-qunit',
-      'karma-sinon',
-      'karma-detect-browsers'
+      'karma-sinon'
+      // 'karma-detect-browsers'
     ],
     // list of files / patterns to load in the browser
     files: [
       jqueryFile,
       'assets/js/vendor/popper.min.js',
+      'js/tests/unit/sauce_logs_export.js',
       'dist/js/bootstrap.js',
       'js/tests/unit/*.js'
     ],
     reporters: ['dots'],
-    port: 9876,
+    // port: 9876,
     colors: true,
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
     logLevel: config.LOG_ERROR || config.LOG_WARN,
     autoWatch: false,
     customLaunchers: {
-      FirefoxHeadless: {
-        base: 'Firefox',
-        flags: ['-headless']
+      ChromeCustom: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-web-security'],
+        debug: false
       }
+      // FirefoxHeadless: {
+      //   base: 'Firefox',
+      //   flags: ['-headless']
+      // }
     },
-    singleRun: true,
-    concurrency: Infinity,
-    detectBrowsers: {
-      usePhantomJS: false,
-      postDetection(availableBrowser) {
-        if (typeof process.env.TRAVIS_JOB_ID !== 'undefined' || availableBrowser.includes('Chrome')) {
-          return ['ChromeHeadless']
-        }
+    singleRun: true
+    // concurrency: Infinity
+    // detectBrowsers: {
+    //   usePhantomJS: false,
+    //   postDetection(availableBrowser) {
+    //     if (typeof process.env.TRAVIS_JOB_ID !== 'undefined' || availableBrowser.includes('Chrome')) {
+    //       return ['ChromeHeadless']
+    //     }
 
-        if (availableBrowser.includes('Firefox')) {
-          return ['FirefoxHeadless']
-        }
+    //     if (availableBrowser.includes('Firefox')) {
+    //       return ['FirefoxHeadless']
+    //     }
 
-        throw new Error('Please install Firefox or Chrome')
-      }
-    }
+    //     throw new Error('Please install Firefox or Chrome')
+    //   }
+    // }
   })
 }
