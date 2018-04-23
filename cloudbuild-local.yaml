@@ -1,8 +1,11 @@
+substitutions:
+  _NODE: '8.11.0' # default value
+
 steps:
 # Install os specific node_modules
 # npm installing on mac and using for cache for linux cause issues
 - id: 'Install linux node_modules'
-  name: gcr.io/cloud-builders/npm
+  name: gcr.io/cloud-builders/npm:node-${_NODE}
   args: ['install', 'iltorb', 'node-sass']
 
 # Run Tests
@@ -16,15 +19,11 @@ steps:
   args: ['bundle', 'exec', 'jekyll', 'build']
 
 - id: 'docs-lint'
-  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  name: gcr.io/cloud-builders/npm:node-${_NODE}
   dir: './dist'
   args: ['run', 'docs-lint']
 
 - id: 'bundlesize'
-  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  name: gcr.io/cloud-builders/npm:node-${_NODE}
   dir: './dist'
   args: ['run', 'bundlesize']
-
-substitutions:
-  _NODE: '8' # default value
-  _NPM_NODE: '8.11.0' # default value

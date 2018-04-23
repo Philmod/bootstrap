@@ -6,10 +6,14 @@
 # Isolated and portable build env
 # Easier to understand config
 
-# NODE VERSIONS
+# Use Different NODE versions
 # 8: gcloud container builds submit --config=cloudbuild.yaml .
-# 9: gcloud container builds submit --config=cloudbuild.yaml --substitutions=_NODE=9,_NPM_TAG=9.10.0 .
-# 6: gcloud container builds submit --config=cloudbuild.yaml --substitutions=_NODE=6,_NPM_TAG=6.14.0 .
+# 9: gcloud container builds submit --config=cloudbuild.yaml --substitutions=_NODE=9.10.0 .
+# 6: gcloud container builds submit --config=cloudbuild.yaml --substitutions=_NODE=6.14.0 .
+
+substitutions:
+  _NODE: '8.11.0' # default value
+  _BUCKET: 'bootstrap-cache'
 
 steps:
 # Pull base images
@@ -21,7 +25,7 @@ steps:
       - '-c'
       - |
         docker pull gcr.io/$PROJECT_ID/chromium-xvfb-js:${_NODE}
-        docker pull gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+        docker pull gcr.io/cloud-builders/npm:node-${_NODE}
         docker pull ruby
         docker pull jekyll/jekyll
 
@@ -44,7 +48,7 @@ steps:
 
 # Install node_modules
 - id: 'Install node_modules'
-  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  name: gcr.io/cloud-builders/npm:node-${_NODE}
   args: ['install']
 
 # Run Tests
@@ -58,12 +62,12 @@ steps:
   args: ['bundle', 'exec', 'jekyll', 'build']
 
 - id: 'docs-lint'
-  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  name: gcr.io/cloud-builders/npm:node-${_NODE}
   dir: './dist'
   args: ['run', 'docs-lint']
 
 - id: 'bundlesize'
-  name: gcr.io/cloud-builders/npm:node-${_NPM_NODE}
+  name: gcr.io/cloud-builders/npm:node-${_NODE}
   dir: './dist'
   args: ['run', 'bundlesize']
 
@@ -78,8 +82,3 @@ steps:
         gsutil cp node_modules.tar.gz gs://${_BUCKET}/node_modules-${_NODE}.tar.gz
         tar -czf bundle.tar.gz vendor/bundle
         gsutil cp bundle.tar.gz gs://${_BUCKET}/bundle.tar.gz
-
-substitutions:
-  _NODE: '8' # default value
-  _NPM_NODE: '8.11.0' # default value
-  _BUCKET: 'bootstrap-cache'
