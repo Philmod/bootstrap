@@ -1,16 +1,19 @@
-substitutions:
-  _NODE: '8.11.0' # default value
-  _BUCKET: 'bootstrap-cache'
+substitutions: # default values
+  _NODE: '8.11.0'
+  _BUCKET: 'bootstrap-cache' # you could make your gcs public or require contributors have their own
+  # _USERNAME: 'christophersanson'
+  # _ACCESS_KEY: '2f2a2bf3-6b6c-49a7-a659-7c727c90afbc'
 
 steps:
+# images will be cached on the worker for production and this step will be removed
 - id: 'Pull images'
   name: gcr.io/cloud-builders/docker
   entrypoint: 'sh'
   args:
       - '-c'
       - |
-        docker pull gcr.io/$PROJECT_ID/chromium-xvfb-js:${_NODE}
         docker pull gcr.io/cloud-builders/npm:node-${_NODE}
+        docker pull digitallyseamless/nodejs-bower-grunt
         docker pull ruby
         docker pull jekyll/jekyll
 
@@ -36,15 +39,14 @@ steps:
   name: gcr.io/cloud-builders/npm:node-${_NODE}
   args: ['install']
 
-# Run Tests
-  # todo: add this to package.json
-- id: 'Install grunt'
-  name: gcr.io/cloud-builders/npm:node-${_NODE}
-  args: ['install', 'grunt', 'grunt-saucelabs-qunit', 'grunt-contrib-connect']
-
+# Run SauceLabs Tests
 - id: 'Run Grunt SauceLabs Tests'
   name: digitallyseamless/nodejs-bower-grunt
-  args: ['grunt']
+  args: 
+    - grunt
+    - --username=$_USERNAME
+    - --access-key=$_ACCESS_KEY
+    - --build-id=$BUILD_ID
 
 - id: 'docs-compile'
   name: jekyll/jekyll

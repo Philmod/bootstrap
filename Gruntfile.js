@@ -1,11 +1,15 @@
 module.exports = function (grunt) {
   var browsers = [
-      {
-        "browserName": "chrome",
-        "platform": "Linux",
-        "version": "latest"
-      }
-    ];
+    {
+      "browserName": "chrome",
+      "platform": "Linux",
+      "version": "latest"
+    }
+  ];
+
+  var username = grunt.option('username');
+  var access_key = grunt.option('access-key');
+  var build_id = grunt.option('build-id') || 'test';
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -21,15 +25,15 @@ module.exports = function (grunt) {
     'saucelabs-qunit': {
       all: {
         options: {
-          username: 'christophersanson', // if not provided it'll default to ENV SAUCE_USERNAME (if applicable)
+          username: username,
           key: function() {
-            return '2720c493-f07c-482e-b313-a9e2179c0b2f';
-          }, // if not provided it'll default to ENV SAUCE_ACCESS_KEY (if applicable)
+            return access_key;
+          },
           urls: [
             'http://127.0.0.1:9999/js/tests/index.html?hidepassed'
           ],
           browsers: browsers,
-          build: '123',
+          build: build_id,
           testname: 'qunit tests',
           throttled: 3,
           sauceConfig: {
@@ -44,9 +48,9 @@ module.exports = function (grunt) {
     },
     watch: {}
   });
-  
+
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-saucelabs');
-  
+
   grunt.registerTask('default', ['connect', 'saucelabs-qunit']);
 };
