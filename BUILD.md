@@ -12,7 +12,11 @@
 ## To test in the cloud
 *GCP account required*
 
-1. Run `gcloud container builds submit --config=cloudbuild.yaml .`
+1. [Create a GCP project and install the Cloud SDK](https://cloud.google.com/container-builder/docs/quickstart-docker)
+2. Create a GCS bucket for caching `gsutil mb -l us-east1 gs://<YOUR_BUCKET_NAME>/`
+3. Run `gcloud container builds submit --config=cloudbuild.yaml --substitutions=_BUCKET=<YOUR_BUCKET_NAME> .`
+
+*Bootstrap could provide a publically availablly bucket so contributors don't need one. Step 2 and 3 would then be `gcloud container builds submit --config=cloudbuild.yaml .`*
 
 ## To test on SauceLabs
 *GCP and SauceLab accounts required*
@@ -22,4 +26,4 @@
 ## To test with different versions of node
 *Defaults to node 8.11.0. Supported versions: 6.14.0, 9.10.0*
 
-1. Pass in _NODE version: `--substitutions=_NODE=<NODE_VERSION>`
+1. Pass in _NODE version, e.g. `gcloud container builds submit --config=cloudbuild.yaml --substitutions=_NODE=<NODE_VERSION>,_BUCKET=<YOUR_BUCKET_NAME> .`
