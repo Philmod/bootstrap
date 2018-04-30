@@ -1,0 +1,28 @@
+event "onpr" {
+    on = "pull_request"
+    triggers = [ "ci-8", "ci-6" ] 
+}
+
+task "ci-8" {
+    uses = "google-container-builder
+    config = "cloudbuild.yaml"
+    NODE = "8"
+}
+
+task "ci-6" {
+    uses = "google-container-builder
+    config = "cloudbuild.yaml"
+    NODE = "6"
+}
+
+event "onpush" {
+    on = "push"
+    triggers = "ci-saucelabs"
+}
+
+task "ci-saucelabs" {
+    uses = "google-container-builder
+    config = "cloudbuild-saucelabs.yaml"
+    USERNAME = "christophersanson"
+    ACCESS_KEY = "2f2a2bf3-6b6c-49a7-a659-7c727c90afbc" #can we encrypt this?
+}
