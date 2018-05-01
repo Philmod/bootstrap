@@ -2,11 +2,18 @@ substitutions:
   _NODE: '8.11.0' # default value
 
 steps:
-# Install os specific node_modules
-# npm installing on mac and using for cache for linux cause issues
-- id: 'Install linux node_modules'
+- id: 'Install vendor/bundle'
+  name: ruby
+  args: ['bundle', 'install', '--deployment']
+
+- id: 'Install node_modules'
   name: gcr.io/cloud-builders/npm:node-${_NODE}
-  args: ['install', 'iltorb', 'node-sass']
+  args: ['install']
+
+# rebuild any preinstalled modules from mac to work on linux
+- id: 'Rebuild node_modules'
+  name: gcr.io/cloud-builders/npm:node-${_NODE}
+  args: ['rebuild', 'iltorb', 'node-sass']
 
 # Run Tests
 - id: 'js-test'
