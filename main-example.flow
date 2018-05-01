@@ -4,7 +4,7 @@ event "onpr" {
 }
 
 task "ci-8" {
-    uses = "google-container-builder
+    uses = "google-container-builder"
     config = "cloudbuild.yaml"
     NODE = "8"
 }
