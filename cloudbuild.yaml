@@ -1,9 +1,9 @@
-substitutions: # default values
-  _NODE: '8.11.0'
+substitutions:
+  _NODE: '8.11.0' # default value
   _BUCKET: 'bootstrap-cache'
 
 steps:
-# images will be cached on the worker for final production implementation and this step will be removed
+# images will be cached on the worker for production and this step will be removed
 - id: 'Pull images'
   name: gcr.io/cloud-builders/docker
   entrypoint: 'sh'
@@ -22,9 +22,9 @@ steps:
   args:
       - '-c'
       - |
-        gsutil cp gs://${_BUCKET}/node_modules-${_NODE}.tar.gz previous_node_modules.tar.gz
+        gsutil cp gs://${_BUCKET}/node_modules-${_NODE}.tar.gz previous_node_modules.tar.gz || exit 0
         tar -xzf previous_node_modules.tar.gz node_modules
-        gsutil cp gs://${_BUCKET}/bundle.tar.gz previous_bundle.tar.gz
+        gsutil cp gs://${_BUCKET}/bundle.tar.gz previous_bundle.tar.gz || exit 0
         tar -xzf previous_bundle.tar.gz vendor/bundle
 
 # Install bundle
@@ -33,9 +33,15 @@ steps:
   args: ['bundle', 'install', '--deployment']
 
 # Install node_modules
-- id: 'Install node_modules'
+- id: 'Install dependencies'
   name: gcr.io/cloud-builders/npm:node-${_NODE}
   args: ['install']
+
+# Rebuild dependencies, in case they are passed on
+# from a different OS like macos.
+- id: 'Rebuild dependencies'
+  name: gcr.io/cloud-builders/npm:node-${_NODE}
+  args: ['rebuild']
 
 # Run Tests
 - id: 'js-test'
@@ -65,6 +71,6 @@ steps:
       - '-c'
       - |
         tar -czf node_modules.tar.gz node_modules
-        gsutil cp node_modules.tar.gz gs://${_BUCKET}/node_modules-${_NODE}.tar.gz
+        gsutil cp node_modules.tar.gz gs://${_BUCKET}/node_modules-${_NODE}.tar.gz || exit 0
         tar -czf bundle.tar.gz vendor/bundle
-        gsutil cp bundle.tar.gz gs://${_BUCKET}/bundle.tar.gz
+        gsutil cp bundle.tar.gz gs://${_BUCKET}/bundle.tar.gz || exit 0
