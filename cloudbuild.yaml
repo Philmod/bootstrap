@@ -1,9 +1,9 @@
-substitutions:
-  _NODE: '8.11.0' # default value
+substitutions: # default values
+  _NODE: '8.11.0'
   _BUCKET: 'bootstrap-cache'
 
 steps:
-# images will be cached on the worker for production and this step will be removed
+# images will be cached on the worker for final production implementation and this step will be removed
 - id: 'Pull images'
   name: gcr.io/cloud-builders/docker
   entrypoint: 'sh'
